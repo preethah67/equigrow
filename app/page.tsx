@@ -1,147 +1,135 @@
 "use client";
 import { useState } from 'react';
-import { Lightbulb, Gem, Users, TrendingUp, Handshake, Brain, Zap, Palette, Feather, Award } from 'lucide-react'; // New icons
+import { 
+  Lightbulb, Info, Zap, Sparkles, Target, Users, Wand2, RefreshCw, CheckCircle, X
+} from 'lucide-react';
 
 export default function BiasScanner() {
   const [text, setText] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [activeInsight, setActiveInsight] = useState<{word: string, suggestion: string, reason: string} | null>(null);
   
-  const biasMap: Record<string, string> = { 
-    "aggressive": "driven", 
-    "ninja": "expert", 
-    "rockstar": "top-tier talent",
-    "dominant": "leading",
-    "forceful": "determined",
-    "mankind": "humanity",
-    "chairman": "chairperson",
-    "chairman's": "chairperson's",
-    "spokesman": "spokesperson",
-    "businessman": "business professional",
-    "businessmen": "business professionals",
-    "he": "they", 
-    "him": "them",
-    "his": "their",
-    "hero": "leader", 
-    "heroes": "leaders",
-    "god": "creator", 
-    "goddess": "creator",
-    "foreman": "supervisor",
-    "landlord": "property owner",
-    "manpower": "workforce",
-    "right-hand man": "trusted assistant"
+  const biasData: Record<string, {suggestion: string, reason: string}> = { 
+    "aggressive": { suggestion: "driven", reason: "Focuses on results rather than gendered personality stereotypes." },
+    "chairman": { suggestion: "chairperson", reason: "Neutralizes leadership titles to include all genders (SDG 5.5)." },
+    "mankind": { suggestion: "humanity", reason: "Ensures the language acknowledges the whole population, not just men." },
+    "manpower": { suggestion: "workforce", reason: "Reflects a modern, inclusive talent pool." },
+    "ninja": { suggestion: "expert", reason: "Removes masculine-coded 'tech-bro' culture terms." },
+    "rockstar": { suggestion: "top-tier talent", reason: "Focuses on skill rather than exclusionary labels." }
   };
 
-  const scanText = () => {
-    let highlighted = text;
-    Object.keys(biasMap).forEach(word => {
-      const regex = new RegExp(`\\b${word}\\b`, 'gi');
-      highlighted = highlighted.replace(
-        regex, 
-        `<span class="bg-violet-300/50 text-violet-800 border border-violet-400 px-2 py-0.5 rounded-md font-bold shadow-md">${biasMap[word]}</span>`
-      );
-    });
-    return highlighted;
+  // INSTANT AI SOLUTION LOGIC
+  const giveInstantSolution = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      let newText = text;
+      Object.keys(biasData).forEach(word => {
+        const regex = new RegExp(`\\b${word}\\b`, 'gi');
+        newText = newText.replace(regex, biasData[word].suggestion);
+      });
+      setText(newText);
+      setIsProcessing(false);
+    }, 800); // Small delay to feel like AI is "thinking"
   };
 
-  const getBiasCount = () => {
-    let count = 0;
-    Object.keys(biasMap).forEach(word => {
-      const regex = new RegExp(`\\b${word}\\b`, 'gi');
-      if (text.match(regex)) {
-        count += text.match(regex)!.length;
+  const scanAndHighlight = () => {
+    if (!text) return <span className="text-gray-400 italic">AI Analysis will appear here...</span>;
+    let elements: React.ReactNode[] = [];
+    const words = text.split(/(\s+)/); 
+
+    words.forEach((word, i) => {
+      const cleanWord = word.toLowerCase().trim().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g,"");
+      if (biasData[cleanWord]) {
+        elements.push(
+          <button
+            key={i}
+            onClick={() => setActiveInsight({ word: cleanWord, ...biasData[cleanWord] })}
+            className="bg-yellow-200 text-yellow-900 border-b-4 border-yellow-500 px-1 rounded-sm font-black hover:bg-pink-200 transition-all mx-0.5"
+          >
+            {word}
+          </button>
+        );
+      } else {
+        elements.push(word);
       }
     });
-    return count;
+    return elements;
   };
 
-  const biasCount = getBiasCount();
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-100 to-yellow-100 p-6 md:p-12 text-gray-800 font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-pink-50 to-orange-50 p-6 md:p-12 text-slate-800 font-sans relative overflow-hidden">
       
-      {/* DECORATIVE IMAGES / SHAPES */}
-      <div className="absolute top-8 left-[5%] text-6xl opacity-20"><Palette className="text-pink-400"/></div>
-      <div className="absolute top-1/3 right-[3%] text-8xl opacity-15"><Feather className="text-yellow-400"/></div>
-      <div className="absolute bottom-10 left-[15%] text-5xl opacity-25 animate-pulse"><Award className="text-violet-400"/></div>
-      <div className="absolute top-[20%] left-[40%] bg-blue-300/30 w-24 h-24 rounded-full blur-3xl animate-blob" />
-      <div className="absolute bottom-[20%] right-[30%] bg-green-300/30 w-32 h-32 rounded-full blur-3xl animate-blob-delay" />
+      {/* Background Decor */}
+      <div className="absolute top-20 left-[2%] opacity-10 rotate-12"><Zap size={120} className="text-yellow-500" /></div>
+      <div className="absolute bottom-10 right-[2%] opacity-10"><Sparkles size={150} className="text-pink-500" /></div>
 
-      <div className="max-w-5xl mx-auto relative z-10">
-        {/* Header Section */}
-        <header className="text-center mb-12">
-          <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-violet-200 border border-violet-300 text-violet-700 text-sm font-bold tracking-widest uppercase flex items-center justify-center gap-2">
-            <Zap className="w-4 h-4" /> Goal 5: Equitable Language
+      <div className="max-w-6xl mx-auto relative z-10">
+        <header className="text-center mb-16">
+          <div className="inline-block px-4 py-1.5 mb-6 rounded-full bg-white border border-violet-200 text-violet-600 text-[10px] font-black tracking-[0.3em] uppercase shadow-sm">
+            Instant Equity Engine • SDG 5
           </div>
-          <h1 className="text-6xl font-black mb-4 tracking-tighter italic text-gray-900">
-            Inclusive <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-violet-600">Language AI</span>
+          <h1 className="text-7xl font-black text-slate-900 mb-6 tracking-tighter">
+            <span className="underline decoration-violet-500 decoration-8 underline-offset-8">INCLUSION SCANNER</span>
           </h1>
-          <p className="text-gray-600 text-xl max-w-2xl mx-auto">
-            Removes subtle gender biases to foster truly diverse and inclusive opportunities.
+          <p className="text-slate-600 text-xl font-medium max-w-2xl mx-auto">
+            Detect bias manually or use the <span className="text-violet-600 font-black">AI Magic Wand</span> for an instant inclusive rewrite.
           </p>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
-          {/* Input Area */}
-          <div className="flex flex-col">
-            <label className="mb-3 ml-2 text-sm font-bold text-gray-600 uppercase tracking-widest flex items-center gap-2">
-              <Lightbulb className="w-4 h-4 text-gray-500" /> Original Text
-            </label>
+        {/* MAIN INTERFACE */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-20">
+          <div className="space-y-4 relative">
+            <div className="flex justify-between items-center px-4">
+               <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Your Input</label>
+               <button 
+                 onClick={giveInstantSolution}
+                 disabled={!text || isProcessing}
+                 className="flex items-center gap-2 bg-gradient-to-r from-violet-600 to-pink-600 text-white px-6 py-2 rounded-full font-black text-xs hover:scale-105 transition-all shadow-lg disabled:opacity-50"
+               >
+                 {isProcessing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                 AI MAGIC FIX
+               </button>
+            </div>
             <textarea 
-              className="flex-1 min-h-[300px] w-full p-6 text-lg bg-white/70 border-2 border-pink-200 rounded-3xl focus:border-violet-400 transition-all outline-none shadow-lg text-gray-800 placeholder:text-gray-400"
-              placeholder="Paste your job description, resume, or any text here. (Try: 'We need an aggressive businessman chairman for mankind.')"
+              value={text}
+              className="w-full min-h-[450px] p-10 text-xl bg-white/80 backdrop-blur-md border-2 border-white rounded-[50px] shadow-2xl focus:ring-4 focus:ring-violet-200 transition-all outline-none"
+              placeholder="Paste your text here... (e.g., We need a rockstar chairman)"
               onChange={(e) => setText(e.target.value)}
             />
           </div>
 
-          {/* Output Area */}
-          <div className="flex flex-col">
-            <label className="mb-3 ml-2 text-sm font-bold text-gray-600 uppercase tracking-widest flex items-center gap-2">
-              <Gem className="w-4 h-4 text-gray-500" /> Transformed for Equity
-            </label>
-            <div className="flex-1 min-h-[300px] w-full p-8 bg-gradient-to-br from-white/80 to-pink-50/80 border-2 border-violet-200 rounded-3xl shadow-2xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-violet-300/30 blur-3xl rounded-full transition-all group-hover:bg-violet-400/40" />
-              
-              <div className="relative z-10 text-xl leading-relaxed text-gray-800">
-                {text ? (
-                  <div dangerouslySetInnerHTML={{ __html: scanText() }} />
-                ) : (
-                  <span className="text-gray-400 italic">Results optimized for diversity will appear here...</span>
+          <div className="space-y-4">
+             <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-4">AI Inclusive Result</label>
+             <div className="w-full min-h-[450px] p-10 bg-white/40 border-4 border-dashed border-violet-200 rounded-[50px] relative">
+                <div className="text-2xl leading-relaxed font-medium text-slate-800">
+                  {scanAndHighlight()}
+                </div>
+
+                {activeInsight && (
+                  <div className="mt-10 bg-white border-2 border-violet-500 p-8 rounded-[40px] shadow-2xl relative animate-in slide-in-from-bottom">
+                    <button onClick={() => setActiveInsight(null)} className="absolute top-6 right-6 text-slate-300"><X /></button>
+                    <p className="text-2xl font-black text-slate-900 mb-2 italic">"{activeInsight.word}" → <span className="text-emerald-500">"{activeInsight.suggestion}"</span></p>
+                    <p className="text-slate-600 font-medium">{activeInsight.reason}</p>
+                  </div>
                 )}
-              </div>
-              
-              {text && (
-                <button 
-                  onClick={() => navigator.clipboard.writeText(text.replace(/<[^>]*>/g, ''))}
-                  className="absolute bottom-6 right-6 px-4 py-2 bg-violet-500 hover:bg-violet-600 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-md"
-                >
-                  <Handshake className="w-3 h-3" /> Copy Inclusive Text
-                </button>
-              )}
-            </div>
+             </div>
           </div>
         </div>
 
-        {/* Impact Stats - Focused on Gender Equality */}
-        <div className="mt-16 text-center">
-          <h2 className="text-3xl font-bold text-gray-800 mb-8 flex items-center justify-center gap-3">
-            <TrendingUp className="w-7 h-7 text-green-500" /> Impact on Gender Equality
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-8 bg-white/70 border border-green-200 rounded-3xl shadow-xl">
-              <div className="text-5xl mb-4">♀️♂️</div>
-              <p className="text-4xl font-black text-green-600 mb-2">{biasCount > 0 ? (biasCount * 8) + '%' : '0%'}</p>
-              <p className="text-gray-500 text-sm font-bold uppercase tracking-widest">Reduction in Bias Terms</p>
-            </div>
-            <div className="p-8 bg-white/70 border border-blue-200 rounded-3xl shadow-xl">
-              <div className="text-5xl mb-4">🌟</div>
-              <p className="text-4xl font-black text-blue-600 mb-2">Up to 40%</p>
-              <p className="text-gray-500 text-sm font-bold uppercase tracking-widest">Increase in Diverse Applications</p>
-            </div>
-            <div className="p-8 bg-white/70 border border-orange-200 rounded-3xl shadow-xl">
-              <div className="text-5xl mb-4">🤝</div>
-              <p className="text-4xl font-black text-orange-600 mb-2">100%</p>
-              <p className="text-gray-500 text-sm font-bold uppercase tracking-widest">Focus on Skill, Not Stereotype</p>
-            </div>
-          </div>
+        {/* GALLERIES & CTA */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-24">
+            <img src="https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=400" className="h-64 w-full object-cover rounded-[40px] shadow-lg hover:scale-105 transition-transform" />
+            <img src="https://images.pexels.com/photos/1181605/pexels-photo-1181605.jpeg?auto=compress&cs=tinysrgb&w=400" className="h-64 w-full object-cover rounded-[40px] shadow-lg hover:scale-105 transition-transform translate-y-6" />
+            <img src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=400" className="h-64 w-full object-cover rounded-[40px] shadow-lg hover:scale-105 transition-transform" />
+            <img src="https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=400" className="h-64 w-full object-cover rounded-[40px] shadow-lg hover:scale-105 transition-transform translate-y-6" />
+        </div>
+
+        <div className="bg-slate-900 rounded-[60px] p-16 text-center text-white relative">
+            <h3 className="text-4xl font-black mb-4 italic tracking-tighter">READY TO DEPLOY?</h3>
+            <p className="text-slate-400 mb-8 max-w-lg mx-auto font-medium">Your text is now optimized for SDG 5 compliance. This promotes equality and boosts diverse applications by up to 40%.</p>
+            <button className="bg-white text-slate-900 px-12 py-5 rounded-2xl font-black hover:bg-emerald-500 hover:text-white transition-all">
+                Copy Inclusive Text
+            </button>
         </div>
       </div>
     </div>
