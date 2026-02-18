@@ -178,4 +178,4 @@ export default function EqualityAssessment() {
       </div>
     </div>
   );
-}
+}git add .
